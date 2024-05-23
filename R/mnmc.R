@@ -1,20 +1,23 @@
-# MNMC multidimensional ################
-#This function estimate the conditional expectation of ordinal variables X,
-#i.e. M=E(Z|X). Here we follow the first step algorithm of Forzani et.al
-#(2018).
-#INPUTS:
-# X: ordinal predictor matrix, each row is an observation and each column a predictor variable.
-# W: continuous predictor matrix, each row is an observation and each column a predictor variable.
-#ConvCriteria =1 if we take distance
+#' Estimate Multivariate Normal Mean Coding
+#'
+#' @description
+#' This function estimate the conditional expectation of ordinal variables X, i.e. M=E(Z|X). Here we follow the first step algorithm of Forzani et.al (2018).
+#'
+#' @param X ordinal predictor matrix, each row is an observation and each column a predictor variable.
+#' @param W continuous predictor matrix, each row is an observation and each column a predictor variable.
+#' @param Delta0 initial covariance matrix
+#' @param ConvCriteria convergence criteria. If =1 we take distance
+#' @param tol convergence tolerance
+#'
+#' @return a matrix M with first moment estimates for the latent variables, given the observed Parameter Estimates: Delta, Theta; data.
+#' @export
 
+mnmc <- function(X, W = NULL, Delta0 = NULL, ConvCriteria = 2, tol = 0.01){
 
-# OUTPUT:
-# M: first moment estimates for the latent variables, given the observed Parameter Estimates: Delta, Theta; data.
+# Check arguments ---------------------------------------------------------
 
-#source("auxiliaryfunMNMC.r")
-
-mnmc<-function(X,W=NULL,Delta0=NULL, ConvCriteria =2, tol=0.01){
-
+# X: must be a matrix
+  stopifnot("`X` argument must be a matrix" = is.matrix(X))
 
   if (is.null(X)){M=W;  Delta=stats::cov(W); Theta=NULL} else{
 
@@ -97,8 +100,10 @@ mnmc<-function(X,W=NULL,Delta0=NULL, ConvCriteria =2, tol=0.01){
     }
 
   }
-  result=list(M,Delta, Theta)
+  result=list(M, Delta, Theta)
+
+  class(result) <- "mnmc"
 
   return(result)
-
 }
+
