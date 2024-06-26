@@ -1,25 +1,39 @@
 #library(pracma) #I use this function to uses same functions as Matlab code.
 
-updateEzANDEzz<-function(Ez,Ezz,Theta,X,Delta,idx){
-  i = idx[1]; j= idx[2];
-  X=t(t(X));
-  Xij=X[i,j];
-  thetaj = Theta[[j]];
-  kj = length(thetaj)+1;
-  if (is.null(dim(Delta))){sigmatilde_ij = sqrt(Delta)
+updateEzANDEzz <- function(Ez, Ezz, Theta, X, Delta, idx){
+  i <- idx[1] # i-th observation
+  j <- idx[2] # j-th ordinal variable
+  X <- t(t(X))
+  Xij <- X[i,j]
+  thetaj <- Theta[[j]] # threshold of the j-th ordinal variable
+  kj <- length(thetaj)+1 # number of levels in the j-th ordinal variable
+
+
+  #
+  if ( is.null(dim(Delta)) ){ # ?
+    sigmatilde_ij = sqrt(Delta)
   } else {
-    Sigma_jmj = Delta[j,]; Sigma_jmj=Sigma_jmj[-j];
-    Sigma_mjmj = Delta; Sigma_mjmj=Sigma_mjmj[-j,-j];
-    Sigma_jmj=as.matrix(Sigma_jmj)
-    sigmatilde_ij = sqrt(Delta[j,j] - t(Sigma_jmj)%*%solve(Sigma_mjmj)%*%(Sigma_jmj));
+    Sigma_jmj <- Delta[j,]
+    Sigma_jmj <- Sigma_jmj[-j]
+    Sigma_mjmj <- Delta[-j,-j]
+    Sigma_jmj <- as.matrix(Sigma_jmj)
+    sigmatilde_ij <- sqrt(Delta[j,j] - t(Sigma_jmj)%*%solve(Sigma_mjmj)%*%(Sigma_jmj))
   }
-  if (is.null(dim(Delta))){Emutilde_ij=0
+
+
+  #
+  if ( is.null(dim(Delta)) ){
+    Emutilde_ij <- 0
   } else {
-    Ez_imj = Ez[i,]; Ez_imj = Ez_imj[-j];
-    Ez_imj=as.matrix(Ez_imj)
-    Emutilde_ij = t(Sigma_jmj)%*%solve(Sigma_mjmj)%*%(Ez_imj);
-    Ezz_imjmj = cbind(Ezz[i,,1:dim(Ezz)[3]]); Ezz_imjmj=Ezz_imjmj[-j,-j]; #cambié size(Ezz,3)
+    Ez_imj <- Ez[i,]
+    Ez_imj <- Ez_imj[-j]
+    Ez_imj <- as.matrix(Ez_imj)
+    Emutilde_ij <- t(Sigma_jmj)%*%solve(Sigma_mjmj)%*%(Ez_imj)
+    Ezz_imjmj <- cbind(Ezz[i,,1:dim(Ezz)[3]])
+    Ezz_imjmj=Ezz_imjmj[-j,-j]; #cambié size(Ezz,3)
   }
+
+
 
   if (Xij==1){
     deltatilde_ij = (thetaj[Xij] - Emutilde_ij)/sigmatilde_ij;

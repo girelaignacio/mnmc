@@ -1,43 +1,41 @@
 
 
-computeEzANDEzz<-function(V,p,Delta,Theta){
-  V=t(t(V))
-  t=dim(V)[2] #reemplacé size por dim
-  n=dim(V)[1]  #reemplacé size por dim
-  X = V[,1:p];
-  if (t==p){
-    Ez = matrix(0, nrow = n, ncol = t); #cambié zeros(n,t)
-    Ezz = array(0,c(n,t,t));
+computeEzANDEzz <- function(V, p, Delta, Theta){
+  V <- t(t(V))
+  t <- dim(V)[2] # number of columns
+  n <- dim(V)[1] # number of rows
+  X <- V[, 1:p] # ordinal variables matrix
+  if ( t == p ){
+    Ez <- matrix(0, nrow = n, ncol = t)
+    Ezz <- array(0, c(n,t,t))
   } else {
-    X = V[,1:p];
-    W = V[,(p+1):t]
-    Ez = matrix(0, nrow = n, ncol = t); #cambié zeros(n,t)
-    Ez[,(p+1):t] = W;
-    #Ezz = array(0,c(n,p,p));
-    Ezz = array(0,c(n,t,t));
-    for (j in 1:n) {
-      Ezz[j,(p+1):t,(p+1):t]=stats::cov(W)}
+    W <- V[, (p+1):t]
+    Ez <- matrix(0, nrow = n, ncol = t)
+    Ez[, (p+1):t] <- W
+    Ezz = array(0,c(n,t,t))
 
+    for (j in 1:n) {
+      Ezz[j, (p+1):t, (p+1):t] <- stats::cov(W)
+      }
   }
 
-  SS=matrix(0, nrow = p, ncol = p) #zeros(p,p)
-  # SS=zeros(p,p)
-  Eznew = t(t(Ez));
-  Ezznew =(Ezz);
+  SS <- matrix(0, nrow = p, ncol = p)
+  Eznew <- t(t(Ez))
+  Ezznew <- Ezz
 
   # Initialization
   StopNotMet1 = 1;
   StopNotMet2 = 1;
 
-  history = 1;
-  Sold = diag(p); #eye(p);
-  iter = 0;
+  history = 1
+  Sold = diag(p)
+  iter = 0
 
   while(StopNotMet1==1 && StopNotMet2==1 && iter<100){
-    iter = iter + 1;
+    iter = iter + 1
     for (i in 1:n){
       for (j in 1:p){
-        Auxx = updateEzANDEzz(Ez,Ezz,Theta,V,Delta,c(i,j));
+        Auxx = updateEzANDEzz(Ez, Ezz, Theta, V, Delta, c(i,j))
         a1=as.numeric(Auxx[1])
         a2=as.numeric(Auxx[2])
         Eznew[i,j]= a1

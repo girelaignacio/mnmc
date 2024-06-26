@@ -21,5 +21,5 @@ mnmc(X, W = NULL, Delta0 = NULL, ConvCriteria = 2, tol = 0.01)
 a matrix M with first moment estimates for the latent variables, given the observed Parameter Estimates: Delta, Theta; data.
 }
 \description{
-This function estimate the conditional expectation of ordinal variables X, i.e. M=E(Z|X). Here we follow the first step algorithm of Forzani et.al (2018).
+This function estimates the conditional expectation of ordinal variables X, i.e. M=E(Z|X). Here we follow the first step algorithm of Forzani et.al (2018).
 }
