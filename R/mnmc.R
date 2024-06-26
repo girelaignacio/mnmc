@@ -1,51 +1,89 @@
-# MNMC multidimensional ################
-#This function estimate the conditional expectation of ordinal variables X,
-#i.e. M=E(Z|X). Here we follow the first step algorithm of Forzani et.al
-#(2018).
-#INPUTS:
-# X: ordinal predictor matrix, each row is an observation and each column a predictor variable.
-# W: continuous predictor matrix, each row is an observation and each column a predictor variable.
-#ConvCriteria =1 if we take distance
+#' Estimate Multivariate Normal Mean Coding
+#'
+#' @description
+#' This function estimates the conditional expectation of ordinal variables X, i.e. M=E(Z|X). Here we follow the first step algorithm of Forzani et.al (2018).
+#'
+#' @param X ordinal predictor matrix, each row is an observation and each column a predictor variable.
+#' @param W continuous predictor matrix, each row is an observation and each column a predictor variable.
+#' @param Delta0 initial covariance matrix
+#' @param ConvCriteria convergence criteria. If =1 we take distance
+#' @param tol convergence tolerance
+#'
+#' @return a matrix M with first moment estimates for the latent variables, given the observed Parameter Estimates: Delta, Theta; data.
+#' @export
 
+mnmc <- function(X, W = NULL, Delta0 = NULL, ConvCriteria = 2, tol = 0.01){
 
-# OUTPUT:
-# M: first moment estimates for the latent variables, given the observed Parameter Estimates: Delta, Theta; data.
+# Check arguments ---------------------------------------------------------
 
-#source("auxiliaryfunMNMC.r")
+# X: must be a matrix
+  stopifnot("`X` argument must be a matrix" = is.matrix(X))
 
-mnmc<-function(X,W=NULL,Delta0=NULL, ConvCriteria =2, tol=0.01){
+  if (is.null(X)){
+    # check: stop if W is NULL
+    stop("`X` and `W` arguments are NULL" = is.null(W))
+    # check: check if W is numeric
+    if (!is.numeric(W)) {W <- as.numeric(W)}
+    # TO DO: if W is not numeric, encode characters to numbers. 1,2,3
 
+    # M is the conditional expectation of the ordinal variables
+    M <- W
+    # Delta is the estimated covariance matrix
+    Delta <- stats::cov(W)
+    # Theta contains the estimated threshold for each ordinal variable
+    Theta <- NULL
+    } else {
+    # TODO: Change the order...
+    # check: check if the number of rows of X and W are equal
 
-  if (is.null(X)){M=W;  Delta=stats::cov(W); Theta=NULL} else{
+    stopifnot("`X` and `W` have different number of rows" = nrow(X) == nrow(W))
 
-    X=t(t(X)) ; # To ensure that X is taken as a matrix
-    p = dim(X)[2]; # Number of ordinal variables
-    n = dim(X)[1]; # Number of Observations
+    X <- t(t(X)) ; # To ensure that X is taken as a matrix
+    # preserve the number of rows and columns of the ordinal variables set
+    n <- dim(X)[1]; # Number of observations
+    p <- dim(X)[2]; # Number of ordinal variables
+    # TO DO: n >> p ???
 
+    # preserve the total number of variables (dimen)
+    if( is.null(W) ){
+      dimen <- p
+      } else{
+        dimen <- p + dim(W)[2]
+      }
 
-    if(is.null(W)){dimen=p} else{dimen=p+dim(W)[2]} #Total number of variables
-    if(is.null(Delta0)){Delta0 =diag(rep(1,dimen))} # Initial Delta (Delta0)
-    #Delta0 = Identity as Default
+    # check: if Delta0 is NULL, take the identity matrix as default.
+    # check: if Delta0 is not NULL, check if it is a positive semidefinite matrix
+    if( is.null(Delta0) ){
+      Delta0 <- diag(rep(1,dimen)) # Initial Delta (Delta0)
+      }
 
-    if(is.null(W)){V=X} else { Wo = scale(W,center=TRUE,scale=FALSE);
-    V=cbind(X,Wo)} #Centering continuous variables
+    # center and scale continuous variables
+    # check: if there is no continuous variables, V is equal to the W matrix
+    if( is.null(W) ){
+      V <- X
+      } else {
+        Wo <- scale(W, center = TRUE, scale = FALSE)
+        V <- cbind(X, Wo)
+      } # Centering continuous variables
 
     #Initialization
-    Delta=Delta0;
-    history = -1e6; #history in likelihood values
-    StopNotMet = 1; # Zero means aright to the stop criteria, and one otherwise
-    iter = 0; # For iterations
+    Delta <- Delta0;
+    history <- -1e6; #history in likelihood values
+    StopNotMet <- 1; # Zero means aright to the stop criteria, and one otherwise
+    iter <- 0; # For iterations
 
-    while (StopNotMet==1 && iter<1000){
-      iter = iter+1;
-      print(iter)
+    while (StopNotMet ==1 && iter<1000){
+      iter <- iter + 1
+      message(iter)
 
       # Update thresholds
-      Theta = findThresholds(X,Delta);
-      DeltaOld=Delta;
+      Theta <- findThresholds(X, Delta)
+
+      # preserve DeltaOld for checking convergence below
+      DeltaOld <- Delta
 
       # Ez and Ezz computation
-      MSOut=computeEzANDEzz(V,p,Delta,Theta)
+      MSOut <- computeEzANDEzz(V, p, Delta, Theta)
 
       Maux=MSOut[[1]] #Estimated M=[E(Z|X) Wo]
       SSaux= MSOut[[2]] #Estimated S=E(Z%*%t(Z)|X)
@@ -97,8 +135,10 @@ mnmc<-function(X,W=NULL,Delta0=NULL, ConvCriteria =2, tol=0.01){
     }
 
   }
-  result=list(M,Delta, Theta)
+  result <- list(M, Delta, Theta)
+
+  class(result) <- "mnmc"
 
   return(result)
-
 }
+
